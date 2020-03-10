@@ -1,40 +1,66 @@
-var rgbPaleta = [];
+const numColors = 5;
+const circleDeg = 360;
+const colorDistance = circleDeg/numColors;
+
+const elementNames = ['.website-background', '.element-text', '.element-border',
+'element-background', '.header'];
+const elementQuery = ['body', 'body *', 'body *', 'body *', 'h1, h2, h3, h4, h5, h6'];
+const elementCss = ['background-color', 'color', 'border-color', 'background-color', 'color'];
+
+let colors = ['#FFFFFF', '#FFFFFF', '#FFFFFF', '#FFFFFF', '#FFFFFF'];
 
 function randomPalette(){
-    var r=Math.floor((Math.random() * 255) + 1);
-    var g=Math.floor((Math.random() * 255) + 1);
-    var b=Math.floor((Math.random() * 255) + 1);
+  let initial = Math.random() * circleDeg;
+  let degrees = [initial];
+  let saturation = 0.5;
+  let value = 0.5;
+  for (let i = 1; i < 5; i++) {
+    degrees.push((degrees[i - 1] + colorDistance) % circleDeg);
+  }
+  colors = degrees.map((hue) => toCssRGB(hslToRgb(hue/circleDeg, saturation, value)));
+}
 
-    var hsl = rgbToHsl(r, g, b);    
-    for (i = 0; i < 5; i++) {
-       var tono = (360/5) * i;
-       var rgb = hslToRgb(((tono*100)/360)/100, hsl[1], hsl[2]);
-       rgbPaleta[i] = rgb;       
-    }
-	pintarColores();
-    generateRules();
+function toCssRGB(rgb) {
+  let num = '#';
+  for (let i in rgb) {
+    let color = Math.ceil(rgb[i]);
+    if ((color + "").length == 1) color = '0' + color;
+    num += color.toString(16);
+  }
+  return num;
+}
+
+function newPallete() {
+  randomPalette();
+  showChanges();
+}
+
+function showChanges() {
+  updateColors();
+  $('#css-rules').text(generateRules());
 }
 
 
 function generateRules(){
-  var css=".website-background{color: #"+fullColorHex((rgbPaleta[0][0]), (rgbPaleta[0][1]),(rgbPaleta[0][2]))+";}\n\n"+
-  ".element-text{ color: #"+fullColorHex((rgbPaleta[1][0]), (rgbPaleta[1][1]),(rgbPaleta[1][2]))+";}\n\n"+
-  ".element-border{ border-color: #"+fullColorHex((rgbPaleta[2][0]), (rgbPaleta[2][1]),(rgbPaleta[2][2]))+";}\n\n"+
-  ".element-background{ background-color: #"+fullColorHex((rgbPaleta[3][0]), (rgbPaleta[3][1]),(rgbPaleta[3][2]))+";}\n\n"+
-  ".header{ color: #"+fullColorHex((rgbPaleta[4][0]), (rgbPaleta[4][1]),(rgbPaleta[4][2]))+";}\n\n";
-  $('#css-rules').text(css);
+  let rules = '';
+  elementNames.forEach((elem, index) => {
+    rules += elem + "{ " + elementCss[index] + ": " + colors[index] + "; } \n\n";
+  });
+  return rules;
 }
 
-function resetPaleta(){
-	for (i = 0; i < 5; i++) {
-		rgbPaleta[i] =  [255, 255, 255];
-	}	
-	pintarColores();
-    generateRules();
+function updateColors() {
+  // elementQuery.forEach((elem, index) => {
+  //   $(elem).css(elementCss[index], colors[index]);
+  // });
+  for (let i = 1; i <= 5; i++) {
+    $('#color' + i).css('background-color', colors[i - 1]);
+    $('#color' + i).css('color', 'black');
+  }
 }
 
-function pintarColores(){
-	for (i = 0; i < 5; i++) {		
-		$('#color'+(i+1)).css("background-color","rgb("+rgbPaleta[i][0]+","+rgbPaleta[i][1]+","+rgbPaleta[i][2]+")");		
-	}
+function cleanPallete() {
+  colors = colors.map((c) => 'initial');
+  showChanges();
 }
+
